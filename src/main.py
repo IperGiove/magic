@@ -5,20 +5,21 @@ from pathlib import Path
 import subprocess
 import platform
 
+
 class YouTubeDownloader:
     def __init__(self, page: ft.Page):
         self.page = page
         self.page.title = "MAGIC"
         self.page.vertical_alignment = ft.MainAxisAlignment.CENTER
         self.page.theme_mode = ft.ThemeMode.DARK
-        
+
         # Request storage permission on Android
         self.request_storage_permission()
         self.download_path = self.get_android_download_path()
         # State
         self.downloading = False
         self.has_downloads = False  # Track if any downloads completed
-        
+
         # UI Elements
         self.progress_bars = {}
         self.status_text = ft.Text("")
@@ -33,14 +34,15 @@ class YouTubeDownloader:
             ),
             padding=10
         )
-        
+
         self.init_ui()
-        
-        
+
     def request_storage_permission(self):
         try:
-            self.page.client_storage.set("storage_permission_requested", "true")
-            storage_permission = self.page.invoke_method("request_storage_permission")
+            self.page.client_storage.set(
+                "storage_permission_requested", "true")
+            storage_permission = self.page.invoke_method(
+                "request_storage_permission")
             return storage_permission
         except Exception as e:
             print(f"Error requesting permission: {e}")
@@ -48,18 +50,18 @@ class YouTubeDownloader:
 
     def get_android_download_path(self):
         return "/storage/emulated/0/Download"
-        
 
     def open_folder(self, e):
         """Open the download folder using the default file explorer"""
-        if platform.system() == "Windows":
-            os.startfile(self.download_path)
-        elif platform.system() == "Darwin":  # macOS
-            subprocess.run(["open", self.download_path])
-        elif platform.system() == "Linux":
-            subprocess.run(["xdg-open", self.download_path])
-        else:
-            self.page.launch_url(self.download_path)
+        # if platform.system() == "Windows":
+        #     os.startfile(self.download_path)
+        # elif platform.system() == "Darwin":  # macOS
+        #     subprocess.run(["open", self.download_path])
+        # elif platform.system() == "Linux":
+        #     subprocess.run(["xdg-open", self.download_path])
+        # else:
+        self.page.launch_url(
+            "content://com.android.externalstorage.documents/root/primary")
 
     def init_ui(self):
         self.urls_input = ft.TextField(
@@ -87,17 +89,17 @@ class YouTubeDownloader:
             "Open Downloads Folder",
             icon=ft.Icons.FOLDER_OPEN,
             on_click=self.open_folder,
-            visible=False  # Initially hidden until first download
+            # visible=False  # Initially hidden until first download
         )
 
         directory_row = ft.Row(
             [
-                ft.IconButton(
-                    icon=ft.Icons.FOLDER_OPEN,
-                    tooltip="Select folder",
-                    on_click=self.pick_directory,
-                ),
-                self.path_container
+                # ft.IconButton(
+                #     icon=ft.Icons.FOLDER_OPEN,
+                #     tooltip="Select folder",
+                #     on_click=self.pick_directory,
+                # ),
+                # self.path_container
             ],
             alignment=ft.MainAxisAlignment.CENTER,
             spacing=0
@@ -126,11 +128,8 @@ class YouTubeDownloader:
                     self.progress_column,
                     ft.Column(  # Raggruppa i bottoni e il testo di stato
                         [
-                            ft.Row(
-                                [self.download_button, self.open_folder_button],
-                                alignment=ft.MainAxisAlignment.CENTER,
-                                spacing=20
-                            ),
+                            self.download_button,
+                            self.open_folder_button,
                             self.status_text,
                         ],
                         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
@@ -146,7 +145,8 @@ class YouTubeDownloader:
         def handle_result(e: ft.FilePickerResultEvent):
             if e.path:
                 self.download_path = e.path
-                self.path_container.content.value = f"Path: {self.download_path}"
+                self.path_container.content.value = f"Path: {
+                    self.download_path}"
                 self.page.update()
 
         file_picker = ft.FilePicker(
@@ -162,7 +162,8 @@ class YouTubeDownloader:
             text_align=ft.TextAlign.CENTER,
             width=400  # Larghezza fissa per centraggio
         )
-        progress = ft.ProgressBar(value=0, visible=True, width=400)  # Larghezza fissa
+        progress = ft.ProgressBar(
+            value=0, visible=True, width=400)  # Larghezza fissa
         column = ft.Column(
             [text, progress],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
@@ -170,7 +171,6 @@ class YouTubeDownloader:
         )
         self.progress_column.controls.append(column)
         return text, progress
-
 
     def update_progress(self, url: str, d):
         if d['status'] == 'downloading':
@@ -185,7 +185,8 @@ class YouTubeDownloader:
         elif d['status'] == 'finished':
             text, progress_bar = self.progress_bars[url]
             text.value = f"Completed: {url}"
-            self.open_folder_button.visible = True  # Show the button after first successful download
+            # Show the button after first successful download
+            self.open_folder_button.visible = True
             self.page.update()
 
     def download_url(self, url: str):
@@ -219,12 +220,12 @@ class YouTubeDownloader:
             self.page.update()
             print(f"Download error: {error_msg}")
 
-
     def download_all(self, urls):
         try:
             for url in urls:
                 self.download_url(url)
-            self.status_text.value = "All downloads completed!"
+            self.status_text.value = f"All downloads completed in: {
+                self.download_path}"
         except Exception as e:
             self.status_text.value = f"General error: {str(e)}"
         finally:
@@ -235,8 +236,9 @@ class YouTubeDownloader:
     def start_downloads(self, e):
         if self.downloading:
             return
-        
-        urls = [url.strip() for url in self.urls_input.value.split('\n') if url.strip()]
+
+        urls = [url.strip()
+                for url in self.urls_input.value.split('\n') if url.strip()]
         if not urls:
             self.status_text.value = "Please enter at least one valid URL"
             self.page.update()
@@ -252,7 +254,9 @@ class YouTubeDownloader:
         self.download_button.disabled = True
         self.download_all(urls)
 
+
 def main(page: ft.Page):
     app = YouTubeDownloader(page)
+
 
 ft.app(target=main)
