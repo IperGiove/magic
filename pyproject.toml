@@ -8,14 +8,12 @@ authors = [
     { name = "Flet developer", email = "you@example.com" }
 ]
 dependencies = [
-  "flet==0.26.0",
-  "yt-dlp==2024.12.13",
-  # "pytube==15.0.0",
-  "asyncio==3.4.3",
-  "pathlib",
-  "flet-permission-handler==0.1.0",
-  "ffmpeg==1.4",
-  "ffprobe==0.5",
+    "flet==0.26.0",
+    "yt-dlp==2024.12.13",
+    "asyncio==3.4.3",
+    "pathlib",
+    # "flet-permission-handler==0.1.0",
+    # "ffmpeg-downloader==0.3.0"
 ]
 
 [tool.flet.android.permission]
@@ -63,9 +61,3 @@ package-mode = false
 
 [tool.poetry.group.dev.dependencies]
 flet = {extras = ["all"], version = "0.26.0"}
-
-
-assets = [
-    { path = "ffmpeg/android/arm64-v8a/ffmpeg", target = "app/src/main/jniLibs/arm64-v8a/libffmpeg.so" },
-    { path = "ffmpeg/android/arm64-v8a/ffprobe", target = "app/src/main/jniLibs/arm64-v8a/libffprobe.so" }
-]

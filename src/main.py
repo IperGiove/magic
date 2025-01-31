@@ -201,20 +201,30 @@ class YouTubeDownloader:
                 'preferredcodec': 'mp3',
             }] if self.audio_only.value else [],
             'keepvideo': False,
-            'tmpdir': f"{self.download_path}",  # Set temporary directory
             'verbose': True,
-            'no_warnings': False,
-            'writethumbnail': False,
-            'updatetime': False,
+            'no_warnings': True,
+            # Usa il postprocessor built-in di yt-dlp per l'audio
+            'extract_audio': self.audio_only.value,
+            'audio_format': 'mp3' if self.audio_only.value else None,
+            'prefer_ffmpeg': False  # Non usare FFmpeg se possibile
         }
 
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                await asyncio.get_event_loop().run_in_executor(None, lambda: ydl.download([url]))
+                await asyncio.get_event_loop().run_in_executor(
+                    None, 
+                    lambda: ydl.download([url])
+                )
             self.has_downloads = True
-        except Exception as e:
-            text.value = f"Error with {url}: {str(e)}"
+            text.value = f"Completed: {url}"
+            self.open_folder_button.visible = True
             self.page.update()
+        except Exception as e:
+            error_msg = str(e)
+            text.value = f"Error with {url}: {error_msg}"
+            self.page.update()
+            print(f"Download error: {error_msg}")  # Debug log
+
 
     async def download_all(self, urls):
         try:
