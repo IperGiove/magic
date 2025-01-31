@@ -12,7 +12,7 @@ dependencies = [
     "yt-dlp==2024.12.13",
     "asyncio==3.4.3",
     "pathlib",
-    # "flet-permission-handler==0.1.0",
+    "flet-permission-handler==0.1.0",
     # "ffmpeg-downloader==0.3.0"
 ]
 

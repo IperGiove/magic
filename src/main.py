@@ -2,7 +2,6 @@ import flet as ft
 import yt_dlp
 import os
 from pathlib import Path
-import asyncio
 import subprocess
 import platform
 
@@ -57,8 +56,10 @@ class YouTubeDownloader:
             os.startfile(self.download_path)
         elif platform.system() == "Darwin":  # macOS
             subprocess.run(["open", self.download_path])
-        else:  # Linux and others
+        elif platform.system() == "Linux":
             subprocess.run(["xdg-open", self.download_path])
+        else:
+            self.page.launch_url(self.download_path)
 
     def init_ui(self):
         self.urls_input = ft.TextField(
@@ -187,34 +188,27 @@ class YouTubeDownloader:
             self.open_folder_button.visible = True  # Show the button after first successful download
             self.page.update()
 
-    async def download_url(self, url: str):
+    def download_url(self, url: str):
         text, progress_bar = self.create_progress_bar(url)
         self.progress_bars[url] = (text, progress_bar)
         self.page.update()
 
         ydl_opts = {
-            'format': 'bestaudio/best' if self.audio_only.value else 'bestvideo+bestaudio/best',
+            # Se audio only, prendi formato m4a (che non richiede conversione)
+            'format': 'm4a/bestaudio[ext=m4a]' if self.audio_only.value else 'best',
             'outtmpl': f"{self.download_path}/%(title)s.%(ext)s",
             'progress_hooks': [lambda d: self.update_progress(url, d)],
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-            }] if self.audio_only.value else [],
-            'keepvideo': False,
-            'verbose': True,
-            'no_warnings': True,
-            # Usa il postprocessor built-in di yt-dlp per l'audio
-            'extract_audio': self.audio_only.value,
-            'audio_format': 'mp3' if self.audio_only.value else None,
-            'prefer_ffmpeg': False  # Non usare FFmpeg se possibile
+            # 'no_warnings': True,
+            'postprocessors': [],  # Nessun post-processing
+            'keepvideo': True,
+            # 'extractor_retries': 3,
+            # 'ignoreerrors': True,
+            'quiet': False
         }
 
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                await asyncio.get_event_loop().run_in_executor(
-                    None, 
-                    lambda: ydl.download([url])
-                )
+                ydl.download([url])
             self.has_downloads = True
             text.value = f"Completed: {url}"
             self.open_folder_button.visible = True
@@ -223,13 +217,13 @@ class YouTubeDownloader:
             error_msg = str(e)
             text.value = f"Error with {url}: {error_msg}"
             self.page.update()
-            print(f"Download error: {error_msg}")  # Debug log
+            print(f"Download error: {error_msg}")
 
 
-    async def download_all(self, urls):
+    def download_all(self, urls):
         try:
-            tasks = [self.download_url(url) for url in urls]
-            await asyncio.gather(*tasks)
+            for url in urls:
+                self.download_url(url)
             self.status_text.value = "All downloads completed!"
         except Exception as e:
             self.status_text.value = f"General error: {str(e)}"
@@ -238,7 +232,7 @@ class YouTubeDownloader:
             self.download_button.disabled = False
             self.page.update()
 
-    async def start_downloads(self, e):
+    def start_downloads(self, e):
         if self.downloading:
             return
         
@@ -256,7 +250,7 @@ class YouTubeDownloader:
 
         self.downloading = True
         self.download_button.disabled = True
-        await self.download_all(urls)
+        self.download_all(urls)
 
 def main(page: ft.Page):
     app = YouTubeDownloader(page)
