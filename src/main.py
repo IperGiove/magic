@@ -110,14 +110,12 @@ class YouTubeDownloader:
             horizontal_alignment=ft.CrossAxisAlignment.CENTER  # Centra i contenuti
         )
 
-        # Modifica il layout del status_text
         self.status_text = ft.Text(
             "",
-            text_align=ft.TextAlign.CENTER,  # Centra il testo
-            width=400  # Larghezza fissa per assicurare il centraggio
+            text_align=ft.TextAlign.CENTER,
+            width=400 
         )
 
-        # Layout principale
         self.page.add(
             ft.Column(
                 [
@@ -126,7 +124,7 @@ class YouTubeDownloader:
                     self.audio_only,
                     directory_row,
                     self.progress_column,
-                    ft.Column(  # Raggruppa i bottoni e il testo di stato
+                    ft.Column(  
                         [
                             self.download_button,
                             self.open_folder_button,
@@ -160,10 +158,10 @@ class YouTubeDownloader:
         text = ft.Text(
             f"Downloading: {url}",
             text_align=ft.TextAlign.CENTER,
-            width=400  # Larghezza fissa per centraggio
+            width=400 
         )
         progress = ft.ProgressBar(
-            value=0, visible=True, width=400)  # Larghezza fissa
+            value=0, visible=True, width=400) 
         column = ft.Column(
             [text, progress],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
@@ -185,7 +183,6 @@ class YouTubeDownloader:
         elif d['status'] == 'finished':
             text, progress_bar = self.progress_bars[url]
             text.value = f"Completed: {url}"
-            # Show the button after first successful download
             self.open_folder_button.visible = True
             self.page.update()
 
@@ -195,12 +192,11 @@ class YouTubeDownloader:
         self.page.update()
 
         ydl_opts = {
-            # Se audio only, prendi formato m4a (che non richiede conversione)
             'format': 'm4a/bestaudio[ext=m4a]' if self.audio_only.value else 'best',
             'outtmpl': f"{self.download_path}/%(title)s.%(ext)s",
             'progress_hooks': [lambda d: self.update_progress(url, d)],
             # 'no_warnings': True,
-            'postprocessors': [],  # Nessun post-processing
+            'postprocessors': [],  
             'keepvideo': True,
             # 'extractor_retries': 3,
             # 'ignoreerrors': True,
